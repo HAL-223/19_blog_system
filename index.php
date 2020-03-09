@@ -31,13 +31,13 @@ session_start();
             <li class="nav-item">
               <a href="new.php" class="nav-link">New Post</a>
             </li>
+          <?php else : ?>
+            <li class="nav-item">
               <a href="sign_in.php" class="nav-link">ログイン</a>
             </li>
             <li class="nav-item">
               <a href="sign_up.php" class="nav-link">アカウント登録</a>
             </li>
-          <?php else : ?>
-
           <?php endif; ?>
           </ul>
       </div>
