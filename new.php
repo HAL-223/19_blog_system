@@ -1,62 +1,19 @@
 <?php
-// 読み込み
+
 require_once('config.php');
 require_once('functions.php');
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  $email = $_POST['email'];
-  $name = $_POST['name'];
-  $password = $_POST['password'];
-// 一つ一つ受け取れているか出す
-  // echo "メールアドレス: ${email}";
-  // echo "<br>";
-  // echo "ユーザー名: ${name}";
-  // echo "<br>";
-  // echo "パスワード: ${password}";
-  // echo "<br>";
-  // エラー表示↓
-  $errors = [];
+session_start();
+$dbh = connectDb();
 
-  if ($email == '') {
-    $errors[] = 'メールアドレスが未入力です。';
-  }
+// すべてのカテゴリーを持ってくる
+$sql = "select * from categories";
+$stmt = $dbh->prepare($sql);
+$stmt->execute();
 
-  if ($name == '') {
-    $errors[] = 'ユーザー名が未入力です。';
-  }
-
-  if ($password == '') {
-    $errors[] = 'パスワードが未入力です。';
-  }
-
-  // アカウント登録済み確認
-  $dbh = connectDb();
-  $sql = "select * from users where email = :email";
-  $stmt = $dbh->prepare($sql);
-  $stmt->bindParam(":email", $email, PDO::PARAM_STR);
-  $stmt->execute();
-  $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-  if ($user) {
-    $errors[] = 'すでにメールアドレスが登録されています';
-  }
-
-  if (empty($errors)) {
-    $sql = "insert into users" . 
-    "(email, name, password, created_at, updated_at) values " . "(:email, :name, :password, now(), now())";
-  $stmt = $dbh->prepare($sql);
-  $stmt->bindParam(":email", $email, PDO::PARAM_STR);
-  $stmt->bindParam(":name", $name, PDO::PARAM_STR);
-  $pw_hash = password_hash($password, PASSWORD_DEFAULT);
-  $stmt->bindParam(':password', $pw_hash, PDO::PARAM_STR);
-  $stmt->execute();
-
-    header('Location: sign_in.php');
-    exit;
-  }
-
-}
-
+$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// 出力、出ているか確認用
+// var_dump($categories);
 
 ?>
 
@@ -76,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <div class="flex-col-area">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5">
       <a href="http://localhost/19_blog_system/index.php" class="navbar-brand">Camp Blog</a>
-            <div class="collapse navbar-collapse" id="navbarToggle">
+      <div class="collapse navbar-collapse" id="navbarToggle">
         <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
           <?php if ($_SESSION['id']) : ?>
             <li class="nav-item">
@@ -96,12 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
           </ul>
       </div>
     </nav>
-    <div class="container">
+        <div class="container">
       <div class="row">
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
           <div class="card-signin my-5 bg-light">
             <div class="card-body">
-              <h5 class="card-title text-center">アカウント登録</h5>
+              <h5 class="card-title text-center">新規記事</h5>
               <?php if ($errors) : ?>
                 <ul class="alert alert-danger">
                   <?php foreach ($errors as $error) : ?>
@@ -109,21 +66,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                   <?php endforeach; ?>
                 </ul>
               <?php endif; ?>
-              <form action="sign_up.php" method="post">
+              <form action="new.php" method="post">
                 <div class="form-group">
-                  <label for="email">メールアドレス</label>
-                  <input type="email" name="email" id="" class="form-control" autofocus >
+                  <label for="title">タイトル</label>
+                  <input type="text" name="title" id="" class="form-control" autofocus >
                 </div>
                 <div class="form-group">
-                  <label for="name">ユーザー名</label>
-                  <input type="text" name="name" id="" class="form-control" require>
+                  <label for="category_id">カテゴリー</label>
+                  <select name="category_id" class="form-control" required>
+                    <option value="" disabled selected>選択して下さい</option>
+                    <!-- <option value="1">テスト1</option>
+                    <option value="2">テスト2</option> -->
+                    <?php foreach ($categories as $c) :?>
+                      <option value="<?php echo $c['id'];?>"><?php  echo $c['name'];?></option>
+                    <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="form-group">
-                  <label for="password">パスワード</label>
-                  <input type="password" name="password" id="" class="form-control" require>
+                  <label for="body">本文</label>
+                  <textarea name="body" id="" cols="30" rows="10" class="form-control" required></textarea>
                 </div>
                 <div class="form-group">
-                  <input type="submit" value="新規登録" class="btn btn-lg btn-primary btn-block" require>
+                  <input type="submit" value="登録" class="btn btn-lg btn-primary btn-block">
                 </div>
               </form>
             </div>
@@ -135,6 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <div class="footer-copyright text-center py-3 text-light">&copy; 2020 Camp Blog</div>
     </footer>
   </div>
+  
 </body>
-
 </html>
