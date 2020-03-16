@@ -44,6 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bindParam(':user_id', $user_id, PDO::PARAM_STR);
 
     $stmt->execute();
+    $id = $dbh->lastInsertId();
+    header("Location: show.php?id={$id}");
+    exit;
   }
 }
 
@@ -110,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <!-- <option value="1">テスト1</option>
                     <option value="2">テスト2</option> -->
                     <?php foreach ($categories as $c) :?>
-                      <option value="<?php echo $c['id'];?>"><?php  echo $c['name'];?></option>
+                      <option value="<?php echo h($c['id']);?>"><?php  echo h($c['name']);?></option>
                     <?php endforeach; ?>
                     </select>
                 </div>
