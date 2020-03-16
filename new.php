@@ -14,6 +14,38 @@ $stmt->execute();
 $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // 出力、出ているか確認用
 // var_dump($categories);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+  $title = $_POST['title'];
+  $body = $_POST['body'];
+  $category_id = $_POST['category_id'];
+  $user_id = $_SESSION['id'];
+
+  $errors = [];
+
+  if ($title == '') {
+    $errors[] = 'タイトルが未入力です';
+  }
+  if ($category_id == '') {
+    $errors[] = 'カテゴリーが未入力です';
+  }
+  if ($body == '') {
+    $errors[] = '本文が未入力です';
+  }
+
+  if (empty($errors)) {
+    $sql = "insert into posts " . 
+      "(title, body, category_id, user_id, created_at, updated_at) values" . 
+      "(:title, :body, :category_id, :user_id, now(), now())";
+    $stmt = $dbh->prepare($sql);
+
+    $stmt->bindParam(':title', $title, PDO::PARAM_STR);
+    $stmt->bindParam(':body', $body, PDO::PARAM_STR);
+    $stmt->bindParam(':category_id', $category_id, PDO::PARAM_INT);
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_STR);
+
+    $stmt->execute();
+  }
+}
 
 ?>
 
@@ -53,7 +85,7 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
           </ul>
       </div>
     </nav>
-        <div class="container">
+    <div class="container">
       <div class="row">
         <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
           <div class="card-signin my-5 bg-light">
