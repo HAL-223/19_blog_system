@@ -1,52 +1,29 @@
 <?php
 
-require_once('config.php');
 require_once('functions.php');
+require_once('categories.php');
+require_once('posts.php');
 
 session_start();
-$dbh = connectDb();
 
 // すべてのカテゴリーを持ってくる
-$sql = "select * from categories";
-$stmt = $dbh->prepare($sql);
-$stmt->execute();
+// $sql = "select * from categories";
+// $stmt = $dbh->prepare($sql);
+// $stmt->execute();
 
-$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-// 出力、出ているか確認用
-// var_dump($categories);
+$categories = getAllCategories();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  $title = $_POST['title'];
-  $body = $_POST['body'];
-  $category_id = $_POST['category_id'];
-  $user_id = $_SESSION['id'];
 
-  $errors = [];
-
-  if ($title == '') {
-    $errors[] = 'タイトルが未入力です';
-  }
-  if ($category_id == '') {
-    $errors[] = 'カテゴリーが未入力です';
-  }
-  if ($body == '') {
-    $errors[] = '本文が未入力です';
-  }
+$errors = inputChkPost($_POST);
 
   if (empty($errors)) {
-    $sql = "insert into posts " . 
-      "(title, body, category_id, user_id, created_at, updated_at) values" . 
-      "(:title, :body, :category_id, :user_id, now(), now())";
-    $stmt = $dbh->prepare($sql);
 
-    $stmt->bindParam(':title', $title, PDO::PARAM_STR);
-    $stmt->bindParam(':body', $body, PDO::PARAM_STR);
-    $stmt->bindParam(':category_id', $category_id, PDO::PARAM_INT);
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-
-    $stmt->execute();
-    $id = $dbh->lastInsertId();
-    header("Location: show.php?id={$id}");
-    exit;
+    $id = insertPost($_POST);
+    if ($id > 0) {
+      header("Location: show.php?id={$id}");
+      exit;
+    }
   }
 }
 
@@ -104,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
               <form action="new.php" method="post">
                 <div class="form-group">
                   <label for="title">タイトル</label>
-                  <input type="text" namere="title" id="" class="form-control" autofocus >
+                  <input type="text" name="title" id="" class="form-control" autofocus >
                 </div>
                 <div class="form-group">
                   <label for="category_id">カテゴリー</label>
