@@ -1,8 +1,7 @@
 <?php
 
-
-require_once('config.php');
 require_once('functions.php');
+require_once('posts.php');
 
 session_start();
 
@@ -12,36 +11,13 @@ if (!is_numeric($id)) {
   exit;
 }
 
-$dbh = connectDb();
-// <<<の後に指定した文字が出てくるまで文字列を入力することが可能。
-// 今回はSQLと指定したので、SQLという文字が出てくるまで文字列として扱う。
-$sql = <<<SQL
-select
-  p.*,
-  c.name 
-from
-  posts p
-left join 
-  categories c
-on 
-  p.category_id = c.id
-where 
-  p.id = :id
-SQL;
-
-$stmt = $dbh->prepare($sql);
-$stmt->bindParam(":id", $id, PDO::PARAM_INT);
-$stmt->execute();
-
-$post = $stmt->fetch(PDO::FETCH_ASSOC);
+$post = getPostFindById($id);
 if(empty($post)) {
   header('Location: index.php');
   exit;
 }
 
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="ja">
